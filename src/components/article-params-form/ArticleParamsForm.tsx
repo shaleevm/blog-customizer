@@ -9,6 +9,7 @@ import { Separator } from 'src/ui/separator';
 import {
 	defaultArticleState,
 	ArticleStateType,
+	OptionType,
 	fontFamilyOptions,
 	fontSizeOptions,
 	fontColors,
@@ -30,21 +31,31 @@ export const ArticleParamsForm = ({
 	const [isOpen, setIsOpen] = useState(false);
 	const [formState, setFormState] =
 		useState<ArticleStateType>(defaultArticleState);
-	const asideRef = useRef<HTMLDivElement>(null);
+	const asideRef = useRef<HTMLElement>(null);
 
 	const toggleOpen = () => setIsOpen((prev) => !prev);
 
-	const handleClickOutside = (e: MouseEvent) => {
-		if (asideRef.current && !asideRef.current.contains(e.target as Node)) {
-			setIsOpen(false);
-		}
-	};
-
 	useEffect(() => {
 		if (!isOpen) return;
+
+		const handleClickOutside = (e: MouseEvent) => {
+			if (asideRef.current && !asideRef.current.contains(e.target as Node)) {
+				setIsOpen(false);
+			}
+		};
+
 		document.addEventListener('mousedown', handleClickOutside);
 		return () => document.removeEventListener('mousedown', handleClickOutside);
 	}, [isOpen]);
+
+	const updateFormField = (field: keyof ArticleStateType) => {
+		return (value: OptionType) => {
+			setFormState((prev) => ({
+				...prev,
+				[field]: value,
+			}));
+		};
+	};
 
 	const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
@@ -55,32 +66,6 @@ export const ArticleParamsForm = ({
 	const handleReset = () => {
 		setFormState(defaultArticleState);
 		onReset();
-	};
-
-	const handleFontFamilyChange = (
-		selected: (typeof fontFamilyOptions)[number]
-	) => {
-		setFormState((prev) => ({ ...prev, fontFamilyOption: selected }));
-	};
-
-	const handleFontSizeChange = (selected: (typeof fontSizeOptions)[number]) => {
-		setFormState((prev) => ({ ...prev, fontSizeOption: selected }));
-	};
-
-	const handleFontColorChange = (selected: (typeof fontColors)[number]) => {
-		setFormState((prev) => ({ ...prev, fontColor: selected }));
-	};
-
-	const handleBackgroundColorChange = (
-		selected: (typeof backgroundColors)[number]
-	) => {
-		setFormState((prev) => ({ ...prev, backgroundColor: selected }));
-	};
-
-	const handleContentWidthChange = (
-		selected: (typeof contentWidthArr)[number]
-	) => {
-		setFormState((prev) => ({ ...prev, contentWidth: selected }));
 	};
 
 	return (
@@ -100,7 +85,7 @@ export const ArticleParamsForm = ({
 					<Select
 						selected={formState.fontFamilyOption}
 						options={fontFamilyOptions}
-						onChange={handleFontFamilyChange}
+						onChange={updateFormField('fontFamilyOption')}
 						title='Шрифт'
 					/>
 
@@ -108,14 +93,14 @@ export const ArticleParamsForm = ({
 						name='font-size'
 						options={fontSizeOptions}
 						selected={formState.fontSizeOption}
-						onChange={handleFontSizeChange}
+						onChange={updateFormField('fontSizeOption')}
 						title='Размер шрифта'
 					/>
 
 					<Select
 						selected={formState.fontColor}
 						options={fontColors}
-						onChange={handleFontColorChange}
+						onChange={updateFormField('fontColor')}
 						title='Цвет шрифта'
 					/>
 
@@ -124,20 +109,25 @@ export const ArticleParamsForm = ({
 					<Select
 						selected={formState.backgroundColor}
 						options={backgroundColors}
-						onChange={handleBackgroundColorChange}
+						onChange={updateFormField('backgroundColor')}
 						title='Цвет фона'
 					/>
 
 					<Select
 						selected={formState.contentWidth}
 						options={contentWidthArr}
-						onChange={handleContentWidthChange}
+						onChange={updateFormField('contentWidth')}
 						title='Ширина контента'
 					/>
 
 					<div className={styles.bottomContainer}>
-						<Button title='Сбросить' type='clear' onClick={handleReset} />
-						<Button title='Применить' type='apply' htmlType='submit' />
+						<Button
+							title='Сбросить'
+							htmlType='reset'
+							type='clear'
+							onClick={handleReset}
+						/>
+						<Button title='Применить' htmlType='submit' type='apply' />
 					</div>
 				</form>
 			</aside>
